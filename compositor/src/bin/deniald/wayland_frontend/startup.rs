@@ -30,6 +30,11 @@ impl WaylandFrontend {
         } = config;
         let display = Display::<RuntimeState>::new()?;
         let display_handle = display.handle();
+        // The default outgoing buffer is 4 KiB per client. A client that
+        // stops reading for a few seconds (for example Chrome under load)
+        // fills it with 1000 Hz pointer motion and is disconnected with
+        // EPIPE. 1 MiB holds several seconds of input events.
+        display_handle.set_default_max_buffer_size(1024 * 1024);
         let loop_handle = event_loop.handle();
         let compositor_state = CompositorState::new::<RuntimeState>(&display_handle);
         let xdg_shell_state = XdgShellState::new::<RuntimeState>(&display_handle);
